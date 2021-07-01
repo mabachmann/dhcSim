@@ -1,0 +1,175 @@
+within dhcSim.DHC.Submodules.TwoPortModules;
+model CondenserActive
+  "Two port active condenser model. Port_a is considered the cold, port_b is considered the hot side."
+  extends Buildings.Fluid.Interfaces.PartialTwoPortInterface;
+  extends Buildings.Fluid.Interfaces.TwoPortFlowResistanceParameters(final
+      computeFlowResistance=(abs(dp_nominal) > Modelica.Constants.eps));
+  extends
+    dhcSim.DHC.Submodules.TwoPortModules.Interfaces.TwoPortModulesParameters(
+      T_start=Medium.T_default);
+
+  // Efficiency
+  parameter Real etaCarnot_nominal(unit="1")=0.5
+    "Carnot effectiveness (=COP/COP_Carnot)"
+    annotation (Dialog(group="Efficiency"));
+  parameter Boolean use_TEva_in=false "=true to use TEva_in port";
+  parameter Boolean use_TCon_in=false "=true to use TEva_in port";
+  parameter Modelica.SIunits.Temperature TEvaSet(displayUnit="K")=Medium.T_default
+    "Evaporator temperature used to compute efficiency" annotation(Dialog(enable=not use_TEva_in));
+  parameter Modelica.SIunits.Temperature TConSet(displayUnit="K")=Medium.T_default
+    "Evaporator temperature used to compute efficiency" annotation(Dialog(enable=not use_TCon_in));
+
+  Modelica.Fluid.Interfaces.FluidPort_a port_a(
+    redeclare package Medium = Medium) annotation (Placement(transformation(extent={{-110,-10},{-90,10}})));
+  Modelica.Fluid.Interfaces.FluidPort_b port_b(
+    redeclare package Medium = Medium) annotation (Placement(transformation(extent={{90,-10},{110,10}})));
+  .dhcSim.DHC.Submodules.CarnotMachines.Condenser.Condenser_dp cnd(
+    redeclare final package Medium = Medium,
+    final allowFlowReversal=allowFlowReversal,
+    final T_start=T_start,
+    final energyDynamics=energyDynamics,
+    final etaCarnot_nominal=etaCarnot_nominal,
+    final m_flow_nominal=m_flow_nominal,
+    final m_flow_small=m_flow_small,
+    final from_dp=from_dp,
+    final dp_nominal=dp_nominal,
+    final linearizeFlowResistance=linearizeFlowResistance,
+    final deltaM=deltaM,
+    final use_TEva_in=true,
+    final tau=tau,
+    final TConSet=TConSet,
+    final use_TCon_in=true,
+    final effInpCon=dhcSim.Fluid.Types.OutletTemperature.prescribed)
+    annotation (Placement(transformation(extent={{-12,-10},{8,10}})));
+
+  Modelica.Blocks.Interfaces.RealInput dp_in(unit="Pa")    annotation (Placement(transformation(
+        extent={{-20,-20},{20,20}},
+        rotation=90,
+        origin={0,-120}), iconTransformation(
+        extent={{-20,-20},{20,20}},
+        rotation=90,
+        origin={0,-80})));
+  Modelica.Blocks.Interfaces.RealOutput P_out "Electrical power" annotation (
+      Placement(transformation(
+        extent={{-10,-10},{10,10}},
+        rotation=90,
+        origin={0,110})));
+  Modelica.Blocks.Interfaces.RealOutput QEva_flow_out "Evaporator heat flow"
+    annotation (Placement(transformation(
+        extent={{-10,-10},{10,10}},
+        rotation=90,
+        origin={60,110})));
+  Modelica.Blocks.Interfaces.RealOutput QCon_flow_out "Condensator heat flow"
+    annotation (Placement(transformation(
+        extent={{-10,-10},{10,10}},
+        rotation=90,
+        origin={-60,110})));
+  Modelica.Blocks.Sources.RealExpression TEva_exp(y=TEva_internal)
+                                                              annotation (
+      Placement(transformation(
+        extent={{10,-10},{-10,10}},
+        rotation=180,
+        origin={-40,-24})));
+  Modelica.Blocks.Interfaces.RealInput TEva_in(unit="K") if  use_TEva_in
+    annotation (Placement(transformation(
+        extent={{-20,-20},{20,20}},
+        rotation=90,
+        origin={-60,-120}), iconTransformation(
+        extent={{-20,-20},{20,20}},
+        rotation=90,
+        origin={-60,-80})));
+  Modelica.Blocks.Interfaces.RealInput TCon_in(unit="K") if  use_TCon_in
+    annotation (Placement(transformation(
+        extent={{-20,-20},{20,20}},
+        rotation=90,
+        origin={60,-120}),  iconTransformation(
+        extent={{-20,-20},{20,20}},
+        rotation=90,
+        origin={60,-80})));
+  Modelica.Blocks.Sources.RealExpression TCon_exp(y=TCon_internal) annotation (
+      Placement(transformation(
+        extent={{10,-10},{-10,10}},
+        rotation=0,
+        origin={32,-24})));
+  Buildings.Fluid.FixedResistances.PressureDrop res(
+    redeclare final replaceable package Medium = Medium,
+    final allowFlowReversal=allowFlowReversal,
+    final m_flow_nominal=m_flow_nominal,
+    final show_T=show_T,
+    final from_dp=from_dp,
+    final dp_nominal=dp_nominal,
+    final linearized=linearizeFlowResistance,
+    final deltaM=deltaM)
+    annotation (Placement(transformation(extent={{-60,-10},{-40,10}})));
+
+protected
+  Modelica.Blocks.Interfaces.RealInput TEva_internal(unit="K");
+  Modelica.Blocks.Interfaces.RealInput TCon_internal(unit="K");
+  parameter Modelica.SIunits.SpecificEnthalpy deltah=cp_default*m_flow_small*
+      0.01 "Small value for deltah used for regularization";
+  parameter Medium.ThermodynamicState state_default=Medium.setState_pTX(
+      T=Medium.T_default,
+      p=Medium.p_default,
+      X=Medium.X_default[1:Medium.nXi]) "Default state";
+  parameter Modelica.SIunits.Density rho_default=Medium.density(state=state_default);
+  parameter Modelica.SIunits.DynamicViscosity mu_default=
+      Medium.dynamicViscosity(state=state_default)
+    "Dynamic viscosity at nominal condition";
+  parameter Modelica.SIunits.SpecificHeatCapacity cp_default=
+      Medium.specificHeatCapacityCp(state=state_default)
+    "Specific heat capacity at default medium state";
+equation
+  connect(TEva_in, TEva_internal);
+  if not use_TEva_in then
+    TEva_internal = TEvaSet;
+  end if;
+  connect(TCon_in, TCon_internal);
+  if not use_TCon_in then
+    TCon_internal = TConSet;
+  end if;
+  connect(cnd.port_b, port_b)
+    annotation (Line(points={{8,0},{100,0}},         color={0,127,255}));
+  connect(cnd.P_out, P_out) annotation (Line(points={{9,-6},{40,-6},{40,60},{0,
+          60},{0,110}}, color={0,0,127}));
+  connect(cnd.QEva_flow_out, QEva_flow_out) annotation (Line(points={{9,-9},{60,
+          -9},{60,110}},           color={0,0,127}));
+  connect(cnd.QCon_flow_out, QCon_flow_out) annotation (Line(points={{9,-3},{20,
+          -3},{20,40},{-60,40},{-60,110}},    color={0,0,127}));
+  connect(TEva_exp.y,cnd. TEva_in)
+    annotation (Line(points={{-29,-24},{-8,-24},{-8,-12}}, color={0,0,127}));
+  connect(dp_in,cnd. dp_in)
+    annotation (Line(points={{0,-120},{0,-12},{-2,-12}},
+                                                color={0,0,127}));
+  connect(TCon_exp.y, cnd.TCon_in)
+    annotation (Line(points={{21,-24},{4,-24},{4,-12}}, color={0,0,127}));
+  connect(res.port_b, cnd.port_a)
+    annotation (Line(points={{-40,0},{-12,0}}, color={0,127,255}));
+  connect(res.port_a, port_a)
+    annotation (Line(points={{-60,0},{-100,0}}, color={0,127,255}));
+  annotation (defaultComponentName="cndAct",
+    Diagram(coordinateSystem(preserveAspectRatio=false, extent={{-100,-100},{100,
+            100}})),
+    Icon(coordinateSystem(preserveAspectRatio=false, extent={{-100,-100},{100,100}}),
+        graphics={
+        Rectangle(
+          extent={{-70,60},{70,-60}},
+          lineColor={0,0,255},
+          pattern=LinePattern.None,
+          fillColor={95,95,95},
+          fillPattern=FillPattern.Solid),
+        Rectangle(
+          extent={{-100,6},{100,-6}},
+          lineColor={0,0,255},
+          pattern=LinePattern.None,
+          fillColor={0,0,255},
+          fillPattern=FillPattern.Solid),
+        Rectangle(
+          extent={{0,-6},{100,6}},
+          lineColor={0,0,255},
+          pattern=LinePattern.None,
+          fillColor={255,0,0},
+          fillPattern=FillPattern.Solid),
+        Line(points={{-60,100},{-60,60}}, color={28,108,200}),
+        Line(points={{0,100},{0,60}}, color={28,108,200}),
+        Line(points={{60,100},{60,60}}, color={28,108,200})}));
+end CondenserActive;

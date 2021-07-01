@@ -1,0 +1,94 @@
+within dhcSim.DHC.ControlSystems;
+model FreeCoolingControler_1stOrdDel
+  "Model enables or disables free cooling"
+
+  parameter Integer nPro(min=1, max=Modelica.Constants.inf) = 1 "Number of producers";
+  parameter Integer[nPro] isFreeCooling(min=0, max=1) = ones(nPro) "Vector describes which producer is a free cooling producer";
+
+  parameter Modelica.SIunits.Temperature T_FreeCooling = 273.15+5 "Ambient temperature from which free cooling is allowed";
+
+  parameter Real k(unit="1")=1 "Gain";
+  parameter Modelica.SIunits.Time T(start=1) "Time Constant";
+  parameter Modelica.Blocks.Types.Init initType=Modelica.Blocks.Types.Init.NoInit
+    "Type of initialization (1: no init, 2: steady state, 3/4: initial output)"     annotation(Evaluate=true,
+      Dialog(group="Initialization"));
+  parameter Real y_start=0 "Initial or guess value of output (= state)"
+    annotation (Dialog(group="Initialization"));
+
+  Integer[nPro] freeCool "Vecotr controles free cooling";
+
+  Modelica.Blocks.Interfaces.RealInput[nPro] u
+    annotation (Placement(transformation(extent={{-140,-20},{-100,20}})));
+  Modelica.Blocks.Interfaces.RealOutput[nPro] y
+    annotation (Placement(transformation(extent={{100,-10},{120,10}})));
+  Modelica.Blocks.Interfaces.RealInput Tamb(unit = "K")
+    annotation (Placement(transformation(extent={{-140,60},{-100,100}})));
+
+  Modelica.Blocks.Sources.RealExpression[nPro] realExpression(y=freeCool .* u)
+    annotation (Placement(transformation(extent={{20,-10},{40,10}})));
+  Modelica.Blocks.Continuous.FirstOrder[nPro] firstOrder(
+    each final k=k,
+    each final T=T,
+    each final initType=initType,
+    each final y_start=y_start)
+    annotation (Placement(transformation(extent={{60,-10},{80,10}})));
+equation
+
+  for i in 1:nPro loop
+    if isFreeCooling[i]==0 then
+      freeCool[i] = 1;
+    else
+      if Tamb<=T_FreeCooling then
+        freeCool[i] = 1;
+      else
+        freeCool[i] = 0;
+      end if;
+    end if;
+  end for;
+
+  connect(realExpression.y, firstOrder.u)
+    annotation (Line(points={{41,0},{58,0}}, color={0,0,127}));
+  connect(firstOrder.y, y)
+    annotation (Line(points={{81,0},{110,0}}, color={0,0,127}));
+  annotation (Icon(coordinateSystem(preserveAspectRatio=false), graphics={
+        Rectangle(
+          extent={{-100,100},{100,-100}},
+          lineColor={0,0,0},
+          fillColor={255,255,255},
+          fillPattern=FillPattern.Solid),
+        Ellipse(
+          extent={{-60,88},{60,-32}},
+          lineColor={28,108,200},
+          fillColor={28,108,200},
+          fillPattern=FillPattern.Solid),
+        Line(
+          points={{0,86},{0,-28}},
+          color={255,255,255},
+          thickness=0.5),
+        Line(
+          points={{0,57},{0,-57}},
+          color={255,255,255},
+          thickness=0.5,
+          origin={0,29},
+          rotation=90),
+        Line(
+          points={{-39,42},{37,-40}},
+          color={255,255,255},
+          thickness=0.5,
+          origin={0,29},
+          rotation=90),
+        Line(
+          points={{-39,42},{37,-40}},
+          color={255,255,255},
+          thickness=0.5,
+          origin={0,29},
+          rotation=180),
+        Text(
+          extent={{-88,-42},{86,-94}},
+          lineColor={0,0,0},
+          lineThickness=0.5,
+          fillColor={255,255,255},
+          fillPattern=FillPattern.Solid,
+          textString="FreeCoolCtrl")}),                          Diagram(
+        coordinateSystem(preserveAspectRatio=false)));
+end FreeCoolingControler_1stOrdDel;

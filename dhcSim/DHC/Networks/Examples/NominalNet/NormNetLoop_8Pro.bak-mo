@@ -1,0 +1,327 @@
+within dhcSim.DHC.Networks.Examples.NominalNet;
+model NormNetLoop_8Pro
+  "Example of a norminal district heating looped network using 8 producer"
+  import gp = dhcSim.Utilities.getAbsolutePath;
+  extends dhcSim.DHC.Networks.BaseClasses.BaseGrid(
+    p_start={3e5,3e5},
+    T_start={TSup,TRet},
+    nLev=2,
+    nMix=12,
+    nPip=64,
+    redeclare Submodules.MultiPortModules.Pipe.AdiabatePipe pipe,
+    tau=10,
+    MixNPrt={3,3,3,4,3,4,3,3,3,1,1,1},
+    pAbs=3e5,
+    dpType=dhcSim.DHC.Submodules.TwoPortModules.Pipe.Types.dpTypes.lengthDiameter,
+    diameter=fill(
+        0.1143,
+        nPip,
+        nLev),
+    m_flow_nominal_pip=fill(
+        34.38,
+        nPip,
+        nLev),
+    length={95,161,96,13,59,33,59,29,27,101,20,57,18,134,27,14,108,29,125,166,
+        189,30,86,96,150,189,109,28,67,121,170,52,37,65,186,75,164,89,154,155,
+        164,53,132,31,43,58,107,83,70,141,111,112,116,38,113,135,37,162,160,169,
+        48,98,137,22},
+    roughness=1.0e-5);
+
+  parameter Modelica.SIunits.Length[nPip, nLev] diameter_input = fill(0.1143, nPip, nLev) "Input parameter diameter";
+  parameter Modelica.SIunits.MassFlowRate[nPip, nLev]  m_flow_nominal_pip_input = fill(34.38, nPip, nLev) "Input parameter nominal mass flow rate of pipes";
+  parameter Modelica.SIunits.Temperature TSup = 273.15+80 "Nominal supply temperature";
+  parameter Modelica.SIunits.Temperature TRet = 273.15+55 "Nominal return temperature";
+
+  Modelica.SIunits.MassFlowRate[nPip] m_flow_pip_output "Output mass flow rate of pipes";
+
+  // Producer and consumer:
+  parameter Integer nPro = 8 "Number of producer";
+  parameter Integer nCon = 64 "Number of consumer";
+  parameter String[nCon] fileNameCon = {gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_1.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_2.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_3.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_4.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_5.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_6.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_7.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_8.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_9.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_10.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_11.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_12.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_13.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_14.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_15.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_16.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_17.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_18.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_19.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_20.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_21.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_22.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_23.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_24.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_25.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_26.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_27.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_28.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_29.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_30.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_31.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_32.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_33.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_34.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_35.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_36.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_37.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_38.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_39.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_40.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_41.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_42.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_43.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_44.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_45.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_46.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_47.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_48.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_49.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_50.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_51.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_52.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_53.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_54.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_55.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_56.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_57.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_58.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_59.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_60.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_61.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_62.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_63.txt"),
+                                        gp("modelica://dhcSim/Resources/LoadProf/NomNet/dynamic/con_64.txt")} "location of consumer profiles";
+
+  Submodules.MultiPortModules.DistrictHeating.Producer.DH_ActiveDirectProducer[
+    nPro] pro(
+    each nLev=2,
+    each p_start=p_start,
+    each T_start=T_start,
+    each dp_nominal=1000,
+    each iLev1=1,
+    each iLev2=2,
+    use_T_sup_in=false,
+    redeclare each package Medium = Medium,
+    each m_flow_nominal=1,
+    each TNetSupSet(displayUnit="degC") = TSup,
+    each TNetRetSet(displayUnit="degC") = TRet)
+    annotation (Placement(transformation(extent={{-30,12},{-10,32}})));
+  Submodules.MultiPortModules.DistrictHeating.Consumer.DH_DirectConsumer[nCon]
+    con(
+    each nLev=2,
+    each p_start=p_start,
+    each T_start=T_start,
+    each iLev1=1,
+    each iLev2=2,
+    fileName=fileNameCon,
+    redeclare each package Medium = Medium,
+    each TGradHX(displayUnit="K") = 2,
+    each dp_nominal=1000,
+    each m_flow_nominal=1,
+    redeclare dhcSim.Data.SysTemp_75_65_20 sysTem,
+    each use_HeatingCurve=false,
+    each TNetRetSet(displayUnit="K") = TRet)
+    annotation (Placement(transformation(extent={{14,12},{34,32}})));
+  Modelica.Blocks.Sources.RealExpression realExpression1(y=300000)
+    annotation (Placement(transformation(extent={{-100,20},{-80,40}})));
+equation
+
+  for i in 1:nPip loop
+    m_flow_pip_output[i] =pipe[i].pipe[1].port_a.m_flow;
+  end for;
+
+    // Grid connections
+    for i in 1:nLev loop
+      //outer loop
+    connect(pipe[1].ports_b[i], con[7].ports_a[i]);
+    connect(con[7].ports_b[i], pipe[2].ports_a[i]);
+    connect(pipe[2].ports_b[i], con[6].ports_a[i]);
+      connect(con[6].ports_b[i], con[14].ports_a[i]);
+    connect(con[14].ports_b[i], pipe[3].ports_a[i]);
+    connect(pipe[3].ports_b[i], mix[1].ports[i, 1]);
+    connect(mix[1].ports[i, 2], pipe[4].ports_a[i]);
+    connect(pipe[4].ports_b[i], con[5].ports_a[i]);
+      connect(con[5].ports_b[i], con[13].ports_a[i]);
+    connect(con[13].ports_b[i], pipe[5].ports_a[i]);
+    connect(pipe[5].ports_b[i], con[4].ports_a[i]);
+    connect(con[4].ports_b[i], pipe[6].ports_a[i]);
+    connect(pipe[6].ports_b[i], con[3].ports_a[i]);
+    connect(con[3].ports_b[i], pipe[7].ports_a[i]);
+    connect(pipe[7].ports_b[i], con[2].ports_a[i]);
+    connect(con[2].ports_b[i], pipe[8].ports_a[i]);
+    connect(pipe[8].ports_b[i], con[1].ports_a[i]);
+      connect(con[1].ports_b[i], pro[5].ports_a[i]);
+    connect(pro[5].ports_b[i], pipe[9].ports_a[i]);
+    connect(pipe[9].ports_b[i], con[9].ports_a[i]);
+      connect(con[9].ports_b[i], mix[2].ports[i, 1]);
+    connect(mix[2].ports[i, 2], pipe[16].ports_a[i]);
+    connect(pipe[16].ports_b[i], con[17].ports_a[i]);
+    connect(con[17].ports_b[i], pipe[17].ports_a[i]);
+    connect(pipe[17].ports_b[i], mix[3].ports[i, 1]);
+    connect(mix[3].ports[i, 2], pipe[27].ports_a[i]);
+    connect(pipe[27].ports_b[i], con[25].ports_a[i]);
+      connect(con[25].ports_b[i], con[26].ports_a[i]);
+    connect(con[26].ports_b[i], pipe[29].ports_a[i]);
+    connect(pipe[29].ports_b[i], mix[5].ports[i, 1]);
+    connect(mix[5].ports[i, 2], pipe[40].ports_a[i]);
+    connect(pipe[40].ports_b[i], con[33].ports_a[i]);
+    connect(con[33].ports_b[i], pipe[43].ports_a[i]);
+    connect(pipe[43].ports_b[i], con[41].ports_a[i]);
+    connect(con[41].ports_b[i], pipe[46].ports_a[i]);
+    connect(pipe[46].ports_b[i], mix[8].ports[i, 1]);
+    connect(mix[8].ports[i, 2], pipe[53].ports_a[i]);
+    connect(pipe[53].ports_b[i], con[49].ports_a[i]);
+    connect(con[49].ports_b[i], pipe[54].ports_a[i]);
+    connect(pipe[54].ports_b[i], con[57].ports_a[i]);
+    connect(con[57].ports_b[i], pipe[55].ports_a[i]);
+    connect(pipe[55].ports_b[i], con[58].ports_a[i]);
+    connect(con[58].ports_b[i], pipe[56].ports_a[i]);
+    connect(pipe[56].ports_b[i], con[59].ports_a[i]);
+    connect(con[59].ports_b[i], pipe[57].ports_a[i]);
+    connect(pipe[57].ports_b[i], con[60].ports_a[i]);
+    connect(con[60].ports_b[i], pipe[58].ports_a[i]);
+    connect(pipe[58].ports_b[i], con[61].ports_a[i]);
+    connect(con[61].ports_b[i], pipe[59].ports_a[i]);
+    connect(pipe[59].ports_b[i], mix[9].ports[i, 1]);
+    connect(mix[9].ports[i, 2], pipe[60].ports_a[i]);
+    connect(pipe[60].ports_b[i], con[62].ports_a[i]);
+    connect(con[62].ports_b[i], pipe[61].ports_a[i]);
+    connect(pipe[61].ports_b[i], con[63].ports_a[i]);
+    connect(con[63].ports_b[i], pipe[62].ports_a[i]);
+    connect(pipe[62].ports_b[i], con[64].ports_a[i]);
+      connect(con[64].ports_b[i], pro[4].ports_a[i]);
+    connect(pro[4].ports_b[i], pipe[63].ports_a[i]);
+    connect(pipe[63].ports_b[i], con[55].ports_a[i]);
+      connect(con[55].ports_b[i], con[56].ports_a[i]);
+    connect(con[56].ports_b[i], pipe[52].ports_a[i]);
+    connect(pipe[52].ports_b[i], con[47].ports_a[i]);
+      connect(con[47].ports_b[i], con[48].ports_a[i]);
+    connect(con[48].ports_b[i], pipe[45].ports_a[i]);
+    connect(pipe[45].ports_b[i], con[40].ports_a[i]);
+    connect(con[40].ports_b[i], pipe[42].ports_a[i]);
+    connect(pipe[42].ports_b[i], mix[7].ports[i, 2]);
+    connect(mix[7].ports[i, 1], pipe[39].ports_a[i]);
+    connect(pipe[39].ports_b[i], con[31].ports_a[i]);
+      connect(con[31].ports_b[i], con[32].ports_a[i]);
+    connect(con[32].ports_b[i], pipe[28].ports_a[i]);
+    connect(pipe[28].ports_b[i], con[23].ports_a[i]);
+      connect(con[23].ports_b[i], con[24].ports_a[i]);
+    connect(con[24].ports_b[i], pipe[15].ports_a[i]);
+    connect(pipe[15].ports_b[i], con[15].ports_a[i]);
+      connect(con[15].ports_b[i], con[16].ports_a[i]);
+    connect(con[16].ports_b[i], pipe[14].ports_a[i]);
+    connect(pipe[14].ports_b[i], con[8].ports_a[i]);
+      connect(con[8].ports_b[i], pro[6].ports_a[i]);
+    connect(pro[6].ports_b[i], pipe[1].ports_a[i]);
+
+      //Vertical branch
+    connect(mix[1].ports[i, 3], pipe[13].ports_a[i]);
+    connect(pipe[13].ports_b[i], con[22].ports_a[i]);
+    connect(con[22].ports_b[i], pipe[24].ports_a[i]);
+    connect(pipe[24].ports_b[i], mix[4].ports[i, 1]);
+    connect(mix[4].ports[i, 2], pipe[35].ports_a[i]);
+    connect(pipe[35].ports_b[i], mix[6].ports[i, 1]);
+    connect(mix[6].ports[i, 2], pipe[41].ports_a[i]);
+    connect(pipe[41].ports_b[i], con[38].ports_a[i]);
+    connect(con[38].ports_b[i], pipe[44].ports_a[i]);
+    connect(pipe[44].ports_b[i], con[45].ports_a[i]);
+      connect(con[45].ports_b[i], con[46].ports_a[i]);
+    connect(con[46].ports_b[i], pipe[51].ports_a[i]);
+    connect(pipe[51].ports_b[i], con[53].ports_a[i]);
+      connect(con[53].ports_b[i], con[54].ports_a[i]);
+    connect(con[54].ports_b[i], pipe[64].ports_a[i]);
+    connect(pipe[64].ports_b[i], mix[9].ports[i, 3]);
+
+      //Horizontal branch I
+    connect(mix[2].ports[i, 3], pipe[10].ports_a[i]);
+    connect(pipe[10].ports_b[i], con[10].ports_a[i]);
+    connect(con[10].ports_b[i], pipe[11].ports_a[i]);
+    connect(pipe[11].ports_b[i], con[11].ports_a[i]);
+    connect(con[11].ports_b[i], pipe[12].ports_a[i]);
+    connect(pipe[12].ports_b[i], con[12].ports_a[i]);
+      connect(con[12].ports_b[i], mix[11].ports[i, 1]);
+
+      // Horizontal branch II
+    connect(mix[3].ports[i, 3], pipe[18].ports_a[i]);
+    connect(pipe[18].ports_b[i], con[18].ports_a[i]);
+    connect(con[18].ports_b[i], pipe[19].ports_a[i]);
+    connect(pipe[19].ports_b[i], pro[7].ports_a[i]);
+    connect(pro[7].ports_b[i], pipe[20].ports_a[i]);
+    connect(pipe[20].ports_b[i], con[19].ports_a[i]);
+      connect(con[19].ports_b[i], con[27].ports_a[i]);
+    connect(con[27].ports_b[i], pipe[21].ports_a[i]);
+    connect(pipe[21].ports_b[i], con[20].ports_a[i]);
+      connect(con[20].ports_b[i], con[28].ports_a[i]);
+    connect(con[28].ports_b[i], pipe[22].ports_a[i]);
+    connect(pipe[22].ports_b[i], con[21].ports_a[i]);
+      connect(con[21].ports_b[i], con[29].ports_a[i]);
+    connect(con[29].ports_b[i], pipe[23].ports_a[i]);
+    connect(pipe[23].ports_b[i], mix[4].ports[i, 3]);
+    connect(mix[4].ports[i, 4], pipe[25].ports_a[i]);
+    connect(pipe[25].ports_b[i], con[30].ports_a[i]);
+    connect(con[30].ports_b[i], pipe[26].ports_a[i]);
+    connect(pipe[26].ports_b[i], pro[2].ports_a[i]);
+      connect(pro[2].ports_b[i], mix[10].ports[i, 1]);
+
+      // Horizontal branch III
+    connect(mix[5].ports[i, 3], pipe[30].ports_a[i]);
+    connect(pipe[30].ports_b[i], con[34].ports_a[i]);
+    connect(con[34].ports_b[i], pipe[31].ports_a[i]);
+    connect(pipe[31].ports_b[i], con[35].ports_a[i]);
+    connect(con[35].ports_b[i], pipe[32].ports_a[i]);
+    connect(pipe[32].ports_b[i], con[36].ports_a[i]);
+    connect(con[36].ports_b[i], pipe[33].ports_a[i]);
+    connect(pipe[33].ports_b[i], pro[1].ports_a[i]);
+    connect(pro[1].ports_b[i], pipe[34].ports_a[i]);
+    connect(pipe[34].ports_b[i], con[37].ports_a[i]);
+    connect(con[37].ports_b[i], pipe[36].ports_a[i]);
+    connect(pipe[36].ports_b[i], mix[6].ports[i, 3]);
+    connect(mix[6].ports[i, 4], pipe[37].ports_a[i]);
+    connect(pipe[37].ports_b[i], con[39].ports_a[i]);
+    connect(con[39].ports_b[i], pipe[38].ports_a[i]);
+    connect(pipe[38].ports_b[i], pro[8].ports_a[i]);
+      connect(pro[8].ports_b[i], mix[7].ports[i, 3]);
+
+      // Horizontal branch IV
+    connect(mix[8].ports[i, 3], pipe[47].ports_a[i]);
+    connect(pipe[47].ports_b[i], con[42].ports_a[i]);
+      connect(con[42].ports_b[i], con[50].ports_a[i]);
+    connect(con[50].ports_b[i], pipe[48].ports_a[i]);
+    connect(pipe[48].ports_b[i], pro[3].ports_a[i]);
+    connect(pro[3].ports_b[i], pipe[49].ports_a[i]);
+    connect(pipe[49].ports_b[i], con[43].ports_a[i]);
+      connect(con[43].ports_b[i], con[51].ports_a[i]);
+    connect(con[51].ports_b[i], pipe[50].ports_a[i]);
+    connect(pipe[50].ports_b[i], con[44].ports_a[i]);
+      connect(con[44].ports_b[i], con[52].ports_a[i]);
+      connect(con[52].ports_b[i], mix[12].ports[i, 1]);
+    end for;
+
+    // Pressure point
+  connect(expansionVessel.port_a, pro[1].ports_a[1]);
+
+   // Differential pressure of producer:
+   for i in 1:nPro loop
+     connect(realExpression1.y, pro[i].dp_in) annotation (Line(points={{-79,30},{-32,30}}, color={0,0,127}));
+   end for;
+
+   annotation (Line(points={{-10,-120},{
+          -10,-130},{70,-130},{70,-120}}, color={0,127,255}),
+              experiment(StopTime=86400, Interval=60),
+    Diagram(graphics={
+        Line(points={{-30,22},{-38,22},{-60,22},{-60,-60},{-40,-60},{-40,-58},{-40,
+              -60},{-20,-60},{-20,-50},{-10,-50}}, color={28,108,200}),
+        Line(points={{10,-50},{20,-50},{20,-60},{40,-60},{40,-58},{40,-60},{60,-60},
+              {60,22},{34,22}}, color={28,108,200}),
+        Line(points={{14,22},{-10,22}}, color={28,108,200})}));
+end NormNetLoop_8Pro;

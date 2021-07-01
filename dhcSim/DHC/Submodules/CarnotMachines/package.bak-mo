@@ -1,0 +1,4 @@
+within dhcSim.DHC.Submodules;
+package CarnotMachines "Package of cooling and heating machines using carnot priciple"
+  extends Modelica.Icons.VariantsPackage;
+end CarnotMachines;

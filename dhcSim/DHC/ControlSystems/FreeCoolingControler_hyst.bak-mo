@@ -1,0 +1,96 @@
+within dhcSim.DHC.ControlSystems;
+model FreeCoolingControler_hyst
+  "Model enables or disables free cooling using hysteresis"
+
+  parameter Integer nPro(min=1, max=Modelica.Constants.inf) = 1 "Number of producers";
+  parameter Integer[nPro] isFreeCooling(min=0, max=1) = ones(nPro) "Vector describes which producer is a free cooling producer";
+
+  parameter Modelica.SIunits.Temperature T_upper = 273.15+3 "Ambient temperature, when free coolings is initiated";
+  parameter Modelica.SIunits.Temperature T_lower = 273.15+4 "Ambient temperature, when free coolings is terminated";
+
+  Integer[nPro] freeCool "Vecotr controles free cooling";
+
+  Modelica.Blocks.Interfaces.RealInput[nPro] u
+    annotation (Placement(transformation(extent={{-140,-20},{-100,20}})));
+  Modelica.Blocks.Interfaces.RealOutput[nPro] y
+    annotation (Placement(transformation(extent={{100,-10},{120,10}})));
+  Modelica.Blocks.Interfaces.RealInput Tamb(unit = "K")
+    annotation (Placement(transformation(extent={{-140,60},{-100,100}})));
+
+  Modelica.Blocks.Sources.RealExpression[nPro] realExpression(y=freeCool .* u)
+    annotation (Placement(transformation(extent={{20,-10},{40,10}})));
+  Buildings.Controls.OBC.CDL.Continuous.Hysteresis hys(
+    final pre_y_start=false,
+    final uLow=-T_lower,
+    final uHigh=-T_upper)
+    annotation (Placement(transformation(extent={{-40,70},{-20,90}})));
+  Modelica.Blocks.Math.BooleanToInteger booleanToInteger
+    annotation (Placement(transformation(extent={{0,70},{20,90}})));
+  Modelica.Blocks.Math.Gain gain(k=-1)
+    annotation (Placement(transformation(extent={{-80,70},{-60,90}})));
+equation
+
+  freeCool = fill(booleanToInteger.y, nPro);
+
+  /*for i in 1:nPro loop
+    if isFreeCooling[i]==0 then
+      freeCool[i] = 1;
+    else
+      if Tamb<=T_FreeCooling then
+        freeCool[i] = 1;
+      else
+        freeCool[i] = 0;
+      end if;
+    end if;
+  end for;*/
+
+  connect(realExpression.y, y)
+    annotation (Line(points={{41,0},{110,0}}, color={0,0,127}));
+  connect(hys.y, booleanToInteger.u)
+    annotation (Line(points={{-18,80},{-2,80}},  color={255,0,255}));
+  connect(Tamb, gain.u)
+    annotation (Line(points={{-120,80},{-82,80}}, color={0,0,127}));
+  connect(gain.y, hys.u)
+    annotation (Line(points={{-59,80},{-42,80}}, color={0,0,127}));
+  annotation (Icon(coordinateSystem(preserveAspectRatio=false), graphics={
+        Rectangle(
+          extent={{-100,100},{100,-100}},
+          lineColor={0,0,0},
+          fillColor={255,255,255},
+          fillPattern=FillPattern.Solid),
+        Ellipse(
+          extent={{-60,88},{60,-32}},
+          lineColor={28,108,200},
+          fillColor={28,108,200},
+          fillPattern=FillPattern.Solid),
+        Line(
+          points={{0,86},{0,-28}},
+          color={255,255,255},
+          thickness=0.5),
+        Line(
+          points={{0,57},{0,-57}},
+          color={255,255,255},
+          thickness=0.5,
+          origin={0,29},
+          rotation=90),
+        Line(
+          points={{-39,42},{37,-40}},
+          color={255,255,255},
+          thickness=0.5,
+          origin={0,29},
+          rotation=90),
+        Line(
+          points={{-39,42},{37,-40}},
+          color={255,255,255},
+          thickness=0.5,
+          origin={0,29},
+          rotation=180),
+        Text(
+          extent={{-88,-42},{86,-94}},
+          lineColor={0,0,0},
+          lineThickness=0.5,
+          fillColor={255,255,255},
+          fillPattern=FillPattern.Solid,
+          textString="FreeCoolCtrl")}),                          Diagram(
+        coordinateSystem(preserveAspectRatio=false)));
+end FreeCoolingControler_hyst;

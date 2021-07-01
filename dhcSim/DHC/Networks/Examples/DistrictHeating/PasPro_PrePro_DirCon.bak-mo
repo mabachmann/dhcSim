@@ -1,0 +1,134 @@
+within dhcSim.DHC.Networks.Examples.DistrictHeating;
+model PasPro_PrePro_DirCon
+  "Example of a simple district heating grid of passive direct producer, prescribed direct producer and direct consumer"
+  import gp = dhcSim.Utilities.getAbsolutePath;
+  extends dhcSim.DHC.Networks.BaseClasses.BaseGrid(
+    p_start={5*101325,5*101325},
+    T_start={273.15 + 70,273.15 + 55},
+    nLev=2,
+    nMix=2,
+    nPip=9,
+    redeclare Submodules.MultiPortModules.Pipe.AdiabatePipe pipe,
+    tau=10,
+    MixNPrt={3,3},
+    pAbs=300000);
+
+  // Producer and consumer:
+  parameter Integer nProPas = 1 "Number of passive producer";
+  parameter Integer nProPre = 1 "Number of prescribed producer";
+  parameter Integer nCon = 4 "Number of consumer";
+  parameter String[nCon] fileNameCon = fill(gp("modelica://dhcSim/Resources/LoadProf/default/consumerNom.txt"), nCon);
+  parameter String[nProPre] fileNamePro = fill(gp("modelica://dhcSim/Resources/LoadProf/default/producerNom.txt"), nProPre);
+
+  dhcSim.DHC.Submodules.MultiPortModules.DistrictHeating.Producer.DH_PassiveDirectProducer[
+    nProPas] proPas(
+    each nLev=2,
+    each p_start=p_start,
+    each T_start=T_start,
+    each dp_nominal=1000,
+    each iLev1=1,
+    each iLev2=2,
+    redeclare each package Medium = Medium,
+    each use_T_sup_in=true,
+    each TNetRetSet(displayUnit="degC") = 328.15,
+    each TNetSupSet(displayUnit="degC") = 353.15,
+    each m_flow_nominal=1)
+    annotation (Placement(transformation(extent={{-28,12},{-8,32}})));
+
+  dhcSim.DHC.Submodules.MultiPortModules.DistrictHeating.Producer.DH_PrescribedDirectProducer_table[
+    nProPre] proPre(
+    each nLev=2,
+    each p_start=p_start,
+    each T_start=T_start,
+    each dp_nominal=1000,
+    each iLev1=1,
+    each iLev2=2,
+    redeclare each package Medium = Medium,
+    each m_flow_nominal=1,
+    each TNetSupSet=273.15 + 80,
+    each use_T_sup_in=false,
+    each use_TemperatureProfile=false)
+    annotation (Placement(transformation(extent={{-10,-20},{10,0}})));
+
+  Submodules.MultiPortModules.DistrictHeating.Consumer.DH_DirectConsumer[nCon]
+    con(
+    each nLev=2,
+    each p_start=p_start,
+    each T_start=T_start,
+    each iLev1=1,
+    each iLev2=2,
+    fileName=fileNameCon,
+    redeclare each package Medium = Medium,
+    each TGradHX(displayUnit="K") = 2,
+    each TNetRetSet(displayUnit="K") = 273.15 + 55,
+    each dp_nominal=1000,
+    each m_flow_nominal=1,
+    redeclare dhcSim.Data.SysTemp_90_70_20 sysTem,
+    each use_HeatingCurve=true)
+    annotation (Placement(transformation(extent={{14,12},{34,32}})));
+  dhcSim.Weather.CombinedWeather combinedWeather(fileName=
+        dhcSim.Utilities.getAbsolutePath(
+        "modelica://dhcSim/Resources/weatherdata/TRY_Potsdam.dat"))
+    annotation (Placement(transformation(extent={{-100,61},{-80,81}})));
+  Modelica.Blocks.Math.Add add annotation (Placement(transformation(extent={{-60,44},
+            {-40,64}})));
+  Modelica.Blocks.Sources.RealExpression realExpression(y=273.15)
+    annotation (Placement(transformation(extent={{-100,38},{-80,58}})));
+  Modelica.Blocks.Sources.RealExpression[nProPre] realExpression1(each y=1)
+    annotation (Placement(transformation(extent={{-94,-38},{-74,-18}})));
+  Modelica.Blocks.Sources.Sine sine(
+    amplitude=10,
+    freqHz=1/3600/24/30,
+    offset=273.15 + 70)
+    annotation (Placement(transformation(extent={{-98,10},{-78,30}})));
+equation
+  connect(combinedWeather.TempOut, add.u1) annotation (Line(points={{-80,68},{-72,
+          68},{-72,60},{-62,60}}, color={0,0,127}));
+  connect(realExpression.y, add.u2)
+    annotation (Line(points={{-79,48},{-62,48}}, color={0,0,127}));
+
+    // Grid connections
+    for i in 1:nLev loop
+    connect(proPas[1].ports_b[i], pipe[1].ports_a[i]);
+    connect(pipe[1].ports_b[i], con[1].ports_a[i]);
+    connect(con[1].ports_b[i], pipe[2].ports_a[i]);
+    connect(pipe[2].ports_b[i], mix[1].ports[i, 1]);
+    connect(mix[1].ports[i, 2], pipe[3].ports_a[i]);
+    connect(pipe[3].ports_b[i], con[2].ports_a[i]);
+    connect(con[2].ports_b[i], pipe[4].ports_a[i]);
+    connect(pipe[4].ports_b[i], con[3].ports_a[i]);
+    connect(con[3].ports_b[i], pipe[5].ports_a[i]);
+    connect(pipe[5].ports_b[i], mix[2].ports[i, 1]);
+    connect(mix[2].ports[i, 2], pipe[8].ports_a[i]);
+    connect(pipe[8].ports_b[i], proPre[1].ports_a[i]);
+    connect(proPre[1].ports_b[i], pipe[9].ports_a[i]);
+    connect(pipe[9].ports_b[i], proPas[1].ports_a[i]);
+    connect(mix[1].ports[i, 3], pipe[7].ports_a[i]);
+    connect(pipe[7].ports_b[i], con[4].ports_a[i]);
+    connect(con[4].ports_b[i], pipe[6].ports_a[i]);
+    connect(pipe[6].ports_b[i], mix[2].ports[i, 3]);
+    end for;
+
+    // Pressure point
+  connect(expansionVessel.port_a, proPas[1].ports_a[1]);
+
+  for i in 1:nCon loop
+    connect(add.y, con[i].TAmb_in) annotation (Line(points={{-39,54},{0,54},{0,14},
+          {12,14}}, color={0,0,127}));
+  end for;
+  connect(realExpression1.y, proPre.ProCtrl_in)
+    annotation (Line(points={{-73,-28},{-4,-28},{-4,-22}}, color={0,0,127}));
+  connect(sine.y, proPas[1].TSup_in) annotation (Line(points={{-77,20},{-64,20},
+          {-64,14},{-30,14}}, color={0,0,127}));
+   annotation (Line(points={{-10,-120},{
+          -10,-130},{70,-130},{70,-120}}, color={0,127,255}),
+              experiment(StopTime=3.1536e+07, __Dymola_NumberOfIntervals=8760),
+    Diagram(graphics={
+        Line(points={{-30,22},{-38,22},{-60,22},{-60,-60},{-40,-60},{-40,-58},{-40,
+              -60},{-20,-60},{-20,-50},{-10,-50}}, color={28,108,200}),
+        Line(points={{10,-50},{20,-50},{20,-60},{40,-60},{40,-58},{40,-60},{60,-60},
+              {60,22},{34,22}}, color={28,108,200}),
+        Line(points={{14,22},{-10,22}}, color={28,108,200}),
+        Line(points={{-60,-10},{-10,-10}}, color={28,108,200}),
+        Line(points={{10,-10},{30,-10},{60,-10}}, color={28,108,200})}));
+end PasPro_PrePro_DirCon;

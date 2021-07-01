@@ -1,0 +1,152 @@
+within dhcSim.DHC.Submodules.FourPortModules.DistrictHeating.Producer;
+model DH_ActiveHpProducer
+  "Four port model of unlimited large district heating producer using heat pump modul and own pump module"
+  extends Buildings.Fluid.Interfaces.TwoPortFlowResistanceParameters(
+    final computeFlowResistance=(abs(dp_nominal) > Modelica.Constants.eps));
+  extends
+    dhcSim.DHC.Submodules.FourPortModules.Interfaces.FourPortModulesParameters;
+  extends dhcSim.DHC.Submodules.FourPortModules.BaseClasses.BaseModule(final
+      nSpl1=1, final nSpl2=1);
+
+  Modelica.SIunits.Temperature TCon "Condenser temperature";
+  Modelica.SIunits.Temperature TEva "Evaporator temperature";
+  Modelica.SIunits.Temperature TNetSup "Supply temperature grid";
+
+  // parameter Boolean use_HeatingCurve=true "=true, to use heating curve";
+  parameter Boolean use_VariableTEva=true "=true, to use temperature profile for evaporation temperature provided by loadTable";
+  parameter Modelica.SIunits.Temperature TNetSupSet=Medium.T_default
+    "Set temperature of net supply" annotation ();
+  parameter Modelica.SIunits.Temperature TEvaSet=Medium.T_default
+    "Set temperature of evaporator" annotation(Dialog(enable=not use_VariableTEva));
+
+  // Efficiency
+  parameter Real etaCarnot_nominal(unit="1")=0.5
+    "Carnot effectiveness (=COP/COP_Carnot)"
+    annotation (Dialog(group="Efficiency"));
+
+  // Table
+  parameter String tableName="table" "Table name" annotation (
+      Dialog(
+      group="Table data",
+      enable=use_VariableTEva));
+  parameter String fileName="NoName" "File name" annotation (
+      Dialog(
+      group="Table data",
+      enable=use_VariableTEva,
+      loadSelector(filter="Text files (*.txt);;MATLAB MAT-files (*.mat)",
+          caption="Open file in which table is present")));
+
+  dhcSim.DHC.Submodules.TwoPortModules.CondenserActive actCnd(
+    redeclare final package Medium = Medium,
+    final allowFlowReversal=allowFlowReversal,
+    final m_flow_nominal=m_flow_nominal,
+    final show_T=show_T,
+    final T_start=T_start_1,
+    final energyDynamics=energyDynamics,
+    final dp_nominal=dp_nominal,
+    final use_TEva_in=true,
+    final use_TCon_in=true,
+    final from_dp=from_dp,
+    final linearizeFlowResistance=linearizeFlowResistance,
+    final deltaM=deltaM,
+    final etaCarnot_nominal=etaCarnot_nominal,
+    final tau=tau,
+    final m_flow_small=m_flow_small) annotation (Placement(transformation(
+        extent={{-10,-10},{10,10}},
+        rotation=90,
+        origin={0,0})));
+  Modelica.Blocks.Interfaces.RealInput dp_in annotation (Placement(
+        transformation(
+        extent={{-20,-20},{20,20}},
+        rotation=90,
+        origin={60,-120}),
+                         iconTransformation(
+        extent={{-20,-20},{20,20}},
+        rotation=90,
+        origin={60,-120})));
+  Modelica.Blocks.Interfaces.RealOutput P(unit="W") annotation (Placement(
+        transformation(extent={{100,-10},{120,10}}), iconTransformation(extent={
+            {100,-10},{120,10}})));
+  Modelica.Blocks.Sources.RealExpression TCon_exp(y(unit="K") = TCon)
+    annotation (Placement(transformation(extent={{-10,-10},{10,10}},
+        rotation=180,
+        origin={30,20})));
+  Modelica.Blocks.Sources.RealExpression TEva_exp(y(unit="K")=TEva)
+    annotation (Placement(transformation(extent={{-10,-10},{10,10}},
+        rotation=180,
+        origin={30,-20})));
+  Modelica.Blocks.Interfaces.RealOutput QEva_flow(unit="W") annotation (
+      Placement(transformation(extent={{100,30},{120,50}}), iconTransformation(
+          extent={{100,20},{120,40}})));
+  Modelica.Blocks.Interfaces.RealOutput QCon_flow(unit="W") annotation (
+      Placement(transformation(extent={{100,-40},{120,-20}}),
+        iconTransformation(extent={{100,-40},{120,-20}})));
+protected
+  Modelica.Blocks.Sources.CombiTimeTable loadTable(
+    final tableOnFile=true,
+    final extrapolation=Modelica.Blocks.Types.Extrapolation.NoExtrapolation,
+    final fileName=fileName,
+    final smoothness=Modelica.Blocks.Types.Smoothness.ContinuousDerivative,
+    final tableName=tableName,
+    final columns={2,3,4})  annotation (Placement(transformation(extent={{-78,-10},
+            {-58,10}})));
+equation
+
+    TNetSup = TNetSupSet;
+
+    TNetSup=TCon;
+
+  if use_VariableTEva then
+    TEva = loadTable.y[3];
+  else
+    TEva = TEvaSet;
+  end if;
+
+  connect(actCnd.port_b, spl1[1].port_3)
+    annotation (Line(points={{0,10},{0,10},{0,50}}, color={0,127,255}));
+  connect(spl2[1].port_3, actCnd.port_a)
+    annotation (Line(points={{0,-50},{0,-10}}, color={0,127,255}));
+  connect(actCnd.dp_in, dp_in)
+    annotation (Line(points={{8,0},{60,0},{60,-120}}, color={0,0,127}));
+  connect(TCon_exp.y,actCnd. TCon_in)
+    annotation (Line(points={{19,20},{16,20},{16,6},{8,6}}, color={0,0,127}));
+  connect(actCnd.QEva_flow_out, QEva_flow) annotation (Line(points={{-11,6},{-20,
+          6},{-20,40},{110,40}}, color={0,0,127}));
+  connect(actCnd.QCon_flow_out, QCon_flow) annotation (Line(points={{-11,-6},{-20,
+          -6},{-20,-30},{110,-30}}, color={0,0,127}));
+  connect(actCnd.P_out, P)
+    annotation (Line(points={{-11,0},{110,0}}, color={0,0,127}));
+  connect(TEva_exp.y,actCnd. TEva_in) annotation (Line(points={{19,-20},{18,-20},
+          {18,-6},{8,-6}}, color={0,0,127}));
+  annotation (defaultComponentName="actPro", Diagram(coordinateSystem(preserveAspectRatio=false, extent={{-100,
+            -100},{100,100}})),
+    Icon(coordinateSystem(preserveAspectRatio=false, extent={{-100,-100},{100,
+            100}}),
+         graphics={
+        Rectangle(
+          extent={{-25,-6},{25,6}},
+          lineColor={0,0,255},
+          pattern=LinePattern.None,
+          fillColor={255,0,0},
+          fillPattern=FillPattern.Solid,
+          origin={0,25},
+          rotation=90),
+        Rectangle(
+          extent={{-25,6},{25,-6}},
+          lineColor={0,0,255},
+          pattern=LinePattern.None,
+          fillColor={0,0,255},
+          fillPattern=FillPattern.Solid,
+          origin={0,-25},
+          rotation=90),
+        Rectangle(
+          extent={{-50,40},{50,-40}},
+          lineColor={0,0,255},
+          pattern=LinePattern.None,
+          fillColor={95,95,95},
+          fillPattern=FillPattern.Solid),
+                                Text(
+          extent={{-50,40},{50,-40}},
+          lineColor={0,0,0},
+          textString="PP")}));
+end DH_ActiveHpProducer;

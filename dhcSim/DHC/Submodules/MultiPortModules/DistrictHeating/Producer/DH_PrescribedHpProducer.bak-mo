@@ -1,0 +1,180 @@
+within dhcSim.DHC.Submodules.MultiPortModules.DistrictHeating.Producer;
+model DH_PrescribedHpProducer
+  "Multi port model of prescribed district heating producer using heat pump and own pump module"
+  extends
+    dhcSim.DHC.Submodules.MultiPortModules.BaseClasses.BaseMultiPortModule;
+    import gp = dhcSim.Utilities.getAbsolutePath;
+
+  replaceable parameter dhcSim.Data.SystemTemperatures sysTem(
+    m=1.1,
+    TRoo_nominal=293.15,
+    TRoo=293.15,
+    TAmb_nominal=258.15,
+    TSup_nominal=343.15,
+    TRet_nominal=323.15) annotation (
+    Dialog(group="Nominal Conditions", enable=use_HeatingCurve),
+    choicesAllMatching=true,
+    Placement(transformation(extent={{-80,72},{-60,92}})));
+
+  parameter Integer iLev1(min=1, max=nLev) = 1 "Grid connection of ports a1 and b1";
+  parameter Integer iLev2(min=1, max=nLev) = 2 "Grid connection of ports a2 and b2";
+
+  parameter Boolean use_HeatingCurve=true "=true, to use heating curve";
+  parameter Boolean use_VariableTEva=true "=true, to use temperature profile for evaporation temperature provided by loadTable";
+  parameter Boolean use_TemperatureProfile=false "=true, to use temperature profile of supply temperature on net side provided by loadTable" annotation(Dialog(enable=not use_HeatingCurve));
+  parameter Modelica.SIunits.Temperature TEvaSet=Medium.T_default
+    "Set temperature of evaporator" annotation(Dialog(enable=not use_VariableTEva));
+
+  // Efficiency
+  parameter Real etaCarnot_nominal(unit="1")=0.5
+    "Carnot effectiveness (=COP/COP_Carnot)"
+    annotation (Dialog(group="Efficiency"));
+
+  // Table
+  final parameter String tableName="table" "Table name" annotation (
+      Dialog(
+      group="Table data if use_VariableTEva=true",
+      enable=use_VariableTEva));
+  parameter String fileName=dhcSim.Utilities.getAbsolutePath(   "modelica://dhcSim/Resources/LoadProf/default/producerNom.txt")
+  annotation (Dialog(
+      group="Table data if use_VariableTEva=true",
+      enable=use_VariableTEva,
+      loadSelector(filter="Text files (*.txt);;MATLAB MAT-files (*.mat)",
+          caption="Open file in which table is present")));
+  // Temperature profile
+  parameter Modelica.SIunits.Temperature TNetSupSet = 273.15 + 50 "Set supply temperature on net side" annotation(Dialog(enable=not use_HeatingCurve and not use_TemperatureProfile));
+
+  dhcSim.DHC.Submodules.FourPortModules.DistrictHeating.Producer.DH_PrescribedHpProducer
+    ActPro(
+    redeclare package Medium = Medium,
+    final m_flow_nominal=m_flow_nominal,
+    final dp_nominal=dp_nominal,
+    final deltaM=deltaM,
+    final allowFlowReversal=allowFlowReversal,
+    final energyDynamics=energyDynamics,
+    final tau=tau,
+    final from_dp=from_dp,
+    final p_start_1=p_start[iLev1],
+    final T_start_1=T_start[iLev1],
+    final X_start_1=X_start[iLev1, :],
+    final C_start_1=C_start[iLev1, :],
+    final C_nominal_1=C_nominal[iLev1, :],
+    final p_start_2=p_start[iLev2],
+    final T_start_2=T_start[iLev2],
+    final X_start_2=X_start[iLev2, :],
+    final C_start_2=C_start[iLev2, :],
+    final C_nominal_2=C_nominal[iLev2, :],
+    final m_flow_small=m_flow_small,
+    final show_T=show_T,
+    final TEvaSet=TEvaSet,
+    final etaCarnot_nominal=etaCarnot_nominal,
+    final tableName=tableName,
+    final fileName=fileName,
+    final sysTem=sysTem,
+    final use_TemperatureProfile=use_TemperatureProfile,
+    final TNetSupSet=TNetSupSet,
+    final use_HeatingCurve=use_HeatingCurve,
+    final use_VariableTEva=use_VariableTEva,
+    final linearizeFlowResistance=linearizeFlowResistance)
+    annotation (Placement(transformation(extent={{-10,-10},{10,10}})));
+  Modelica.Blocks.Interfaces.RealOutput QEva_flow_out annotation (Placement(
+        transformation(extent={{100,70},{120,90}}), iconTransformation(
+        extent={{-10,-10},{10,10}},
+        rotation=90,
+        origin={60,90})));
+  Modelica.Blocks.Interfaces.RealInput TAmb_in if use_HeatingCurve
+    annotation (Placement(transformation(extent={{-140,-100},{-100,-60}}),
+        iconTransformation(extent={{-140,-100},{-100,-60}})));
+  Modelica.Blocks.Sources.RealExpression TAmb_expr(y=TAmb_internal)
+    annotation (Placement(transformation(extent={{-52,-50},{-32,-30}})));
+  Modelica.Blocks.Interfaces.RealOutput P_out annotation (Placement(
+        transformation(extent={{100,50},{120,70}}), iconTransformation(
+        extent={{-10,-10},{10,10}},
+        rotation=90,
+        origin={0,90})));
+  Modelica.Blocks.Interfaces.RealOutput QCon_flow_out annotation (Placement(
+        transformation(extent={{100,30},{120,50}}), iconTransformation(
+        extent={{-10,-10},{10,10}},
+        rotation=90,
+        origin={-60,90})));
+protected
+    Modelica.Blocks.Interfaces.RealInput TAmb_internal(unit="K")
+    "Needed to connect to conditional connector";
+equation
+
+  connect(ActPro.port_b1, ports_b[iLev1]) annotation (Line(points={{-10,6},{-40,
+          6},{-40,20},{-100,20},{-100,0}},
+                            color={0,127,255}));
+  connect(ActPro.port_b2, ports_b[iLev2]) annotation (Line(points={{-10,-6},{-40,
+          -6},{-40,-20},{-100,-20},{-100,0}},
+                             color={0,127,255}));
+  connect(ActPro.port_a1, ports_a[iLev1]) annotation (Line(points={{10,6},{40,6},
+          {40,20},{100,20},{100,0}},
+                       color={0,127,255}));
+  connect(ActPro.port_a2, ports_a[iLev2]) annotation (Line(points={{10,-6},{40,-6},
+          {40,-20},{100,-20},{100,0}},
+                          color={0,127,255}));
+  connect(TAmb_internal, TAmb_in);
+    if not use_HeatingCurve then
+      TAmb_internal = Medium.T_default;
+    end if;
+
+     for i in 1:nLev loop
+       if ((i <> iLev1) and (i <> iLev2)) then
+         connect(ports_b[i], ports_a[i]);
+       end if;
+     end for;
+
+  connect(TAmb_expr.y, ActPro.TAmb_in)
+    annotation (Line(points={{-31,-40},{-6,-40},{-6,-12}}, color={0,0,127}));
+  connect(ActPro.QEva_flow_out, QEva_flow_out) annotation (Line(points={{11,3},
+          {20,3},{20,80},{110,80}}, color={0,0,127}));
+  connect(ActPro.P_out, P_out) annotation (Line(points={{11,0},{30,0},{30,60},{
+          110,60}}, color={0,0,127}));
+  connect(ActPro.QCon_flow_out, QCon_flow_out) annotation (Line(points={{11,-4},
+          {40,-4},{40,40},{110,40}}, color={0,0,127}));
+  annotation (Icon(coordinateSystem(preserveAspectRatio=false), graphics={
+        Rectangle(
+          extent={{-100,54},{100,74}},
+          lineColor={0,0,255},
+          pattern=LinePattern.None,
+          fillColor={255,0,0},
+          fillPattern=FillPattern.Solid),
+        Rectangle(
+          extent={{-100,-46},{100,-66}},
+          lineColor={0,0,255},
+          pattern=LinePattern.None,
+          fillColor={0,0,255},
+          fillPattern=FillPattern.Solid),
+        Rectangle(
+          extent={{-25,-6},{25,6}},
+          lineColor={0,0,255},
+          pattern=LinePattern.None,
+          fillColor={255,0,0},
+          fillPattern=FillPattern.Solid,
+          origin={0,29},
+          rotation=90),
+        Rectangle(
+          extent={{-25,6},{25,-6}},
+          lineColor={0,0,255},
+          pattern=LinePattern.None,
+          fillColor={0,0,255},
+          fillPattern=FillPattern.Solid,
+          origin={0,-21},
+          rotation=90),
+        Rectangle(
+          extent={{-50,44},{50,-36}},
+          lineColor={0,0,255},
+          pattern=LinePattern.None,
+          fillColor={95,95,95},
+          fillPattern=FillPattern.Solid),
+                                Text(
+          extent={{-50,36},{50,-44}},
+          lineColor={0,0,0},
+          textString="PrHP"),
+        Text(
+          extent={{-152,-104},{148,-64}},
+          textString="%name",
+          lineColor={0,0,255})}),                                Diagram(
+        coordinateSystem(preserveAspectRatio=false)));
+end DH_PrescribedHpProducer;

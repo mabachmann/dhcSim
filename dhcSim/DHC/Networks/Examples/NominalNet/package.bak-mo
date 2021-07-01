@@ -1,0 +1,5 @@
+within dhcSim.DHC.Networks.Examples;
+package NominalNet
+    extends Modelica.Icons.ExamplesPackage;
+
+end NominalNet;
