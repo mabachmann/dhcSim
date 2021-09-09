@@ -22,25 +22,27 @@ model DH_dhc2021_example "Example used in DHC 2021 conference"
     length=length_input,
     roughness=1.0e-5);
 
+//    parameter Modelica.SIunits.Length[nPip, nLev] diameter_input= fill(0.431, nPip, nLev);
+
   parameter Modelica.SIunits.Length[nPip, nLev] diameter_input=
-     {{0.0545, 0.0431, 0.0545},
-     {0.0431, 0.0431, 0.0372},
-     {0.0431, 0.0545, 0.0372},
-     {0.0431, 0.0372, 0.0545}} "Input parameter diameter";
+    {{0.0703, 0.0431, 0.0545},
+     {0.0545, 0.0545, 0.0372},
+     {0.0545, 0.0545, 0.0372},
+     {0.0545, 0.0545, 0.0285}} "Input parameter diameter";
 
   parameter Modelica.SIunits.Length[nPip] length_input= fill(100, nPip) "Input parameter of pipe length";
 
   parameter Modelica.SIunits.MassFlowRate[nPip, nLev]  m_flow_nominal_pip_input=
-    {{2.1, 1.0, 1.8},
-     {1.0, 1.1, 1.4},
-     {1.0, 1.7, 0.7},
-     {1.0, 0.34, 1.4}} "Input parameter nominal mass flow rate of pipes";
+    {{2.7, 1.2, 2.2},
+     {1.6, 1.4, 0.7},
+     {1.6, 2.1, 0.6},
+     {1.6, 1.8, 0.35}} "Input parameter nominal mass flow rate of pipes";
 
    parameter Modelica.SIunits.Length[nPip, nLev]  thicknessIns_input=
-    {{0.125, 0.11,0.125},
-     {0.11, 0.11, 0.11},
-     {0.11, 0.125, 0.11},
-     {0.11, 0.11, 0.125}} "Input parameter of pipe insulation thickness";
+    {{0.042, 0.038, 0.040},
+     {0.040, 0.040, 0.041},
+     {0.040, 0.040, 0.041},
+     {0.040, 0.040, 0.038}} "Input parameter of pipe insulation thickness";
 
   parameter Modelica.SIunits.Temperature[nLev] T_nominal = {273.15 + 80, 273.15+50, 273.15 + 35} "Nominal network temperature";
 
@@ -90,6 +92,7 @@ model DH_dhc2021_example "Example used in DHC 2021 conference"
       m={sysTem_70_55_20.m,sysTem_45_35_20.m,sysTem_45_35_20.m,sysTem_70_55_20.m}),
     iLev1={1,2,2,1},
     iLev2={2,3,3,2},
+    m_flow_min=0.1 .* consumer.m_flow_nominal,
     fileName=fileNameCon,
     redeclare each package Medium = Medium,
     each TGradHX(displayUnit="K") = 2,
