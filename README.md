@@ -12,7 +12,7 @@ custom network concepts. This library can be used for smaller as well as signifi
 
 ## Licence 
 The _dhcSim_ is available under the terms of the BSD 3-Clause License.
-A copy of the license is available at [dhcSim/LICENSE.md](https://github.com/mabachmann/dhcSim/LICENSE.md).
+A copy of the license is available at [dhcSim/LICENSE.md](https://github.com/mabachmann/LICENSE.md).
 
 ## Development and contribution
 You may report any issues by using the [Issues](https://github.com/mabachmann/dhcSim/issues) button.
