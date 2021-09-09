@@ -17,7 +17,13 @@ The dhcSim aims to provide a simple and clear model structure that is user-frien
 custom network concepts. This library can be used for smaller as well as significantly larger DHC networks.
 
 The figure below shows a section of the schematic view of the model
-<a href=\"modelica://dhcSim.DHC.Networks.Examples.DistrictHeating.dhcSimExample.png\">
+<a href=\"modelica://dhcSim.DHC.Networks.Examples.DistrictHeating\">
+
+</p>
+<p align=\"center\">
+<img alt=\"image\" src=\"modelica://dhcSim/Resources/Images/dhcSimExample.png\" border=\"1\"/>
+</p>
+<p>
 
 Contributions to further advance the library are welcomed.
 Contributions may not only be in the form of model development, but also
