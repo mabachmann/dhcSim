@@ -8,6 +8,11 @@ annotation (uses(
   version="1",
   conversion(noneFromVersion=""),
   Documentation(info="<html>
+</p>
+<p align=\"center\">
+<img alt=\"image\" src=\"modelica://dhcSim/Resources/Images/dhcSimLogo.png\" border=\"1\" width=\"250\"/>
+</p>
+<p>
 <p>
 The <code>dhcSim</code> library is a free open-source library with basic models to allow dynamic sumlation of complex 
 district heating and cooling (DHC) networks. It was developed to ease the modeling of complex DHC systems
