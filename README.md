@@ -18,4 +18,9 @@ A copy of the license is available at [dhcSim/LICENSE.md](https://github.com/mab
 You may report any issues by using the [Issues](https://github.com/mabachmann/dhcSim/issues) button.
 
 Contributions in the form of [Pull Requests](https://github.com/mabachmann/dhcSim/pulls) are always welcome.
+Prior to issuing a pull request, make sure your code follows
+the [IBPSA style guide and coding conventions](https://github.com/ibpsa/modelica-ibpsa/wiki/Style-Guide).
+
+
+
 
