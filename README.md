@@ -6,7 +6,7 @@ This is the development site for the _dhcSim Modelica Library_ and its user guid
 The _dhcSim_ library is a free open-source library with basic models to allow dynamic sumlation of complex 
 district heating and cooling (DHC) networks. It was developed to ease the modeling of complex DHC systems
 from two level concepts (supply and return) up to a large number of parallel network levels. This
-library was developed supplementary to the Modelica Buildings Library 8.0.0 and the Modelica Standard Library. 
+library was developed supplementary to the [Modelica Buildings Library](https://github.com/lbl-srg/modelica-buildings) 8.0.0 and the Modelica Standard Library. 
 The dhcSim aims to provide a simple and clear model structure that is user-friendly and applicable to many 
 custom network concepts. This library can be used for smaller as well as significantly larger DHC networks.
 
